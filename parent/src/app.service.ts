@@ -10,8 +10,15 @@ export class AppService {
   getHello(): any {
     //return newrelic.startSegment('getHelloService', false, () => {
     console.log('Calling child ...');
+    const transactionHandle = newrelic.getTransaction()
+
+    // Generate the payload right before creating the linked transaction.
+    const headers = {}
+    newrelic.addCustomAttribute('service','parent')
+    transactionHandle.insertDistributedTraceHeaders(headers)
+    console.log('Need to send this over to queue to the receiving service',JSON.stringify(headers))
     return this.http
-      .get('http://localhost:3001')
+      .post('http://localhost:3001',headers)
       .pipe(
         map((response) => {
           console.log(`Child says ${JSON.stringify(response.data)}`);
